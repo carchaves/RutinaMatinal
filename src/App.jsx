@@ -16,9 +16,16 @@ const C = {
   sunPale: "#FFF3D0",
 };
 
-const HABITS = [
-  { key: "calistenia", label: "Calistenia", Icon: Dumbbell, color: "#E08A3C" },
-  { key: "estiramiento", label: "Estiramiento", Icon: StretchHorizontal, color: "#5FBFA3" },
+// Slot de ejercicio que rota con la noche (ver RutinaNocturna).
+// Ciclo de 3 días: Calistenia cae cuando dayIndex%3===0; el resto, Estiramiento.
+// Press (noche) cae en %3===1, así quedan desfasados con >24h de descanso.
+const CAL = { key: "ejercicio", label: "Calistenia", Icon: Dumbbell, color: "#E08A3C" };
+const EST_AM = { key: "ejercicio", label: "Estiramiento", Icon: StretchHorizontal, color: "#5FBFA3" };
+const dayIndex = (d) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+const exerciseAM = (d) => (dayIndex(d) % 3 === 0 ? CAL : EST_AM);
+
+const habitsForDate = (d) => [
+  exerciseAM(d),
   { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A" },
   { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
   { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
@@ -149,18 +156,19 @@ export default function App() {
 
   const countFor = (key) => {
     const h = data[key] || {};
-    return HABITS.reduce((n, x) => n + (h[x.key] ? 1 : 0), 0);
+    const habits = habitsForDate(new Date(key + "T12:00:00"));
+    return habits.reduce((n, x) => n + (h[x.key] ? 1 : 0), 0);
   };
-  const totalFor = () => HABITS.length;
+  const totalFor = (key) => habitsForDate(new Date(key + "T12:00:00")).length;
 
   // Racha de mañanas completas, terminando hoy o ayer
   const streak = useMemo(() => {
     let cursor = new Date(today);
-    if (countFor(toKey(today)) < totalFor()) cursor = addDays(cursor, -1);
+    if (countFor(toKey(today)) < totalFor(toKey(today))) cursor = addDays(cursor, -1);
     let n = 0;
     for (let i = 0; i < 400; i++) {
       const k = toKey(cursor);
-      if (countFor(k) === totalFor()) {
+      if (countFor(k) === totalFor(k)) {
         n++;
         cursor = addDays(cursor, -1);
       } else break;
@@ -173,8 +181,9 @@ export default function App() {
   const dayLetters = ["L", "M", "X", "J", "V", "S", "D"];
 
   const selDate = new Date(selected + "T12:00:00");
+  const selHabits = habitsForDate(selDate);
   const selCount = countFor(selected);
-  const selTotal = totalFor();
+  const selTotal = selHabits.length;
   const isToday = selected === toKey(today);
 
   const weekLabel = `${weekDays[0].toLocaleDateString("es-ES", { day: "numeric" })}–${weekDays[6].toLocaleDateString("es-ES", { day: "numeric", month: "short" })}`;
@@ -231,7 +240,7 @@ export default function App() {
 
       {/* hábitos */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, position: "relative", zIndex: 1 }}>
-        {HABITS.map(({ key, label, Icon, color }) => {
+        {selHabits.map(({ key, label, Icon, color }) => {
           const done = !!(data[selected] && data[selected][key]);
           return (
             <div
@@ -283,7 +292,7 @@ export default function App() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", gap: 4 }}>
           {weekDays.map((d, i) => {
             const k = toKey(d);
-            const frac = countFor(k) / totalFor();
+            const frac = countFor(k) / totalFor(k);
             const isSel = k === selected;
             const isFuture = d > today && k !== toKey(today);
             return (
