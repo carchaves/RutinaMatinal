@@ -1,0 +1,10 @@
+{
+  "appId": "com.raflos.rutinamatinal",
+  "appName": "Rutina de la mañana",
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorUpdater": {
+      "autoUpdate": false
+    }
+  }
+}

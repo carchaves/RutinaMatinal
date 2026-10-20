@@ -1,0 +1,12 @@
+{
+  "name": "Rutina de la mañana",
+  "short_name": "Rutina mañana",
+  "description": "Seguimiento de habitos matinales: agua, pastillas, estiramiento y press.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FDF6E3",
+  "theme_color": "#FDF6E3",
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
