@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  GlassWater, Pill, StretchHorizontal, Dumbbell,
+  GlassWater, StretchHorizontal, Dumbbell, Croissant, Wind, BedDouble, SprayCan,
   ChevronLeft, ChevronRight, Flame, RotateCcw,
 } from "lucide-react";
 
@@ -17,10 +17,13 @@ const C = {
 };
 
 const HABITS = [
-  { key: "agua", label: "Cargar agua", Icon: GlassWater, color: "#4FA3D1" },
-  { key: "pastillas", label: "Pastillas", Icon: Pill, color: "#D96C9E" },
+  { key: "calistenia", label: "Calistenia", Icon: Dumbbell, color: "#E08A3C" },
   { key: "estiramiento", label: "Estiramiento", Icon: StretchHorizontal, color: "#5FBFA3" },
-  { key: "press", label: "Press", Icon: Dumbbell, color: "#E08A3C" },
+  { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A" },
+  { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
+  { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
+  { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
+  { key: "limpiar_escritorio", label: "Limpiar Escritorio", Icon: SprayCan, color: "#C9A227" },
 ];
 
 const STORAGE_KEY = "morning_routine_data_v1";
