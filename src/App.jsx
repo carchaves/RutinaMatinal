@@ -25,11 +25,11 @@ const dayIndex = (d) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.get
 const exerciseAM = (d) => (dayIndex(d) % 3 === 0 ? CAL : EST_AM);
 
 const habitsForDate = (d) => [
-  exerciseAM(d),
+  { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
   { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A" },
+  exerciseAM(d),
   { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
   { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
-  { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
   { key: "limpiar_escritorio", label: "Limpiar Escritorio", Icon: SprayCan, color: "#C9A227" },
 ];
 
@@ -222,7 +222,7 @@ export default function App() {
       {/* encabezado */}
       <header style={{ position: "relative", zIndex: 1 }}>
         <div style={{ fontFamily: "'Iowan Old Style','Palatino',Georgia,serif", fontSize: 26, color: C.ink, letterSpacing: 0.3 }}>
-          Rutina de la mañana
+          Rutina Matutina
         </div>
         <div style={{ color: C.muted, fontSize: 13, marginTop: 2, fontFamily: "system-ui" }}>
           {cap(selDate.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }))}
