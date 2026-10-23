@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   GlassWater, StretchHorizontal, Dumbbell, Croissant, Wind, BedDouble, SprayCan,
-  ChevronLeft, ChevronRight, Flame, RotateCcw,
+  ShowerHead, ChevronLeft, ChevronRight, Flame, RotateCcw,
 } from "lucide-react";
 
 // -- Paleta dia (invertida de la nocturna) -----------------------
@@ -24,10 +24,29 @@ const EST_AM = { key: "ejercicio", label: "Estiramiento", Icon: StretchHorizonta
 const dayIndex = (d) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
 const exerciseAM = (d) => (dayIndex(d) % 3 === 0 ? CAL : EST_AM);
 
+// Los días de oficina ese slot pasa a ser Baño (en vez del estiramiento/ejercicio).
+// Oficina por defecto: jueves (4). Para semanas en que cambia, agregar overrides
+// por fecha ISO (YYYY-MM-DD): true = ese día SÍ voy, false = no voy. Mantener en
+// sync con RutinaNocturna.
+const BANO_AM = { key: "bano", label: "Baño", Icon: ShowerHead, color: "#4FA3D1" };
+const OFFICE_DOW = new Set([4]);
+const OFFICE_OVERRIDES = {
+  // Semana del 20/10/2026: esta semana voy el viernes en vez del jueves.
+  "2026-10-22": false,
+  "2026-10-23": true,
+};
+const isoDay = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const isOfficeDay = (d) => {
+  const o = OFFICE_OVERRIDES[isoDay(d)];
+  return o !== undefined ? o : OFFICE_DOW.has(d.getDay());
+};
+const morningSlot = (d) => (isOfficeDay(d) ? BANO_AM : exerciseAM(d));
+
 const habitsForDate = (d) => [
   { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
   { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A" },
-  exerciseAM(d),
+  morningSlot(d),
   { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
   { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
   { key: "limpiar_escritorio", label: "Limpiar Escritorio", Icon: SprayCan, color: "#C9A227" },
