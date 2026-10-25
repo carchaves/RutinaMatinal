@@ -16,20 +16,17 @@ const C = {
   sunPale: "#FFF3D0",
 };
 
-// Slot de ejercicio que rota con la noche (ver RutinaNocturna).
-// Ciclo de 3 días: Calistenia cae cuando dayIndex%3===0; el resto, Estiramiento.
-// Press (noche) cae en %3===1, así quedan desfasados con >24h de descanso.
-const CAL = { key: "ejercicio", label: "Calistenia", Icon: Dumbbell, color: "#E08A3C" };
+// La mañana es SIEMPRE estiramiento (el ejercicio fuerte pasó a la noche).
+// Los días de oficina ese slot pasa a ser Baño (ver morningSlot).
 const EST_AM = { key: "ejercicio", label: "Estiramiento", Icon: StretchHorizontal, color: "#5FBFA3" };
 const dayIndex = (d) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
-const exerciseAM = (d) => (dayIndex(d) % 3 === 0 ? CAL : EST_AM);
 
 // Los días de oficina ese slot pasa a ser Baño (en vez del estiramiento/ejercicio).
 // Oficina por defecto: jueves (4). Para semanas en que cambia, agregar overrides
 // por fecha ISO (YYYY-MM-DD): true = ese día SÍ voy, false = no voy. Mantener en
 // sync con RutinaNocturna.
 const BANO_AM = { key: "bano", label: "Baño", Icon: ShowerHead, color: "#4FA3D1" };
-const OFFICE_DOW = new Set([4]);
+const OFFICE_DOW = new Set([1, 3, 4]);
 const OFFICE_OVERRIDES = {
   // Semana del 20/10/2026: esta semana voy el viernes en vez del jueves.
   "2026-10-22": false,
@@ -41,7 +38,7 @@ const isOfficeDay = (d) => {
   const o = OFFICE_OVERRIDES[isoDay(d)];
   return o !== undefined ? o : OFFICE_DOW.has(d.getDay());
 };
-const morningSlot = (d) => (isOfficeDay(d) ? BANO_AM : exerciseAM(d));
+const morningSlot = (d) => (isOfficeDay(d) ? BANO_AM : EST_AM);
 
 const habitsForDate = (d) => [
   { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
