@@ -26,7 +26,7 @@ const dayIndex = (d) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.get
 // por fecha ISO (YYYY-MM-DD): true = ese día SÍ voy, false = no voy. Mantener en
 // sync con RutinaNocturna.
 const BANO_AM = { key: "bano", label: "Baño", Icon: ShowerHead, color: "#4FA3D1" };
-const OFFICE_DOW = new Set([1, 3, 4]);
+const OFFICE_DOW = new Set([5]);
 const OFFICE_OVERRIDES = {
   // Semana del 20/10/2026: esta semana voy el viernes en vez del jueves.
   "2026-10-22": false,
