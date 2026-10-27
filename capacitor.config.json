@@ -1,6 +1,6 @@
 {
   "appId": "com.raflos.rutinamatinal",
-  "appName": "Rutina de la mañana",
+  "appName": "Rutina matutina",
   "webDir": "dist",
   "plugins": {
     "CapacitorUpdater": {
