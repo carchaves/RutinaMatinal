@@ -5,10 +5,10 @@ import {
 } from "lucide-react";
 import { AppLauncher } from "@capacitor/app-launcher";
 
-// Paquete de la app RutinaEjercicio (se abre al tocar el hábito de ejercicio).
-const EXERCISE_APP = "com.rutina.ejercicio";
-const openExerciseApp = async () => {
-  try { await AppLauncher.openUrl({ url: EXERCISE_APP }); } catch (e) { /* no instalada */ }
+// Abrir otra app por package: ejercicio (com.rutina.ejercicio) o Aseo Speedrun
+// (com.ritualducha.app). Requiere declararlos en <queries> del AndroidManifest.
+const openApp = async (pkg) => {
+  try { await AppLauncher.openUrl({ url: pkg }); } catch (e) { /* no instalada */ }
 };
 
 // -- Paleta dia (invertida de la nocturna) -----------------------
@@ -25,14 +25,13 @@ const C = {
 
 // La mañana es SIEMPRE estiramiento (el ejercicio fuerte pasó a la noche).
 // Los días de oficina ese slot pasa a ser Baño (ver morningSlot).
-const EST_AM = { key: "ejercicio", label: "Estiramiento", Icon: StretchHorizontal, color: "#5FBFA3", launch: true };
-const dayIndex = (d) => Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000);
+const EST_AM = { key: "ejercicio", label: "Estiramiento", Icon: StretchHorizontal, color: "#5FBFA3", launch: "com.rutina.ejercicio", launchLabel: "Abrir app de ejercicio" };
 
 // Los días de oficina ese slot pasa a ser Baño (en vez del estiramiento/ejercicio).
 // Oficina por defecto: jueves (4). Para semanas en que cambia, agregar overrides
 // por fecha ISO (YYYY-MM-DD): true = ese día SÍ voy, false = no voy. Mantener en
 // sync con RutinaNocturna.
-const BANO_AM = { key: "bano", label: "Baño", Icon: ShowerHead, color: "#4FA3D1" };
+const BANO_AM = { key: "bano", label: "Baño", Icon: ShowerHead, color: "#4FA3D1", launch: "com.ritualducha.app", launchLabel: "Abrir Aseo Speedrun" };
 const OFFICE_DOW = new Set([5]);
 const OFFICE_OVERRIDES = {
   // Semana del 20/10/2026: esta semana voy el viernes en vez del jueves.
@@ -263,9 +262,9 @@ export default function App() {
 
       {/* hábitos */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, position: "relative", zIndex: 1 }}>
-        {selHabits.map(({ key, label, Icon, color, launch }) => {
+        {selHabits.map(({ key, label, Icon, color, launch, launchLabel }) => {
           const done = !!(data[selected] && data[selected][key]);
-          const act = () => (launch ? openExerciseApp() : toggle(key));
+          const act = () => (launch ? openApp(launch) : toggle(key));
           return (
             <div
               key={key}
@@ -286,7 +285,7 @@ export default function App() {
               </span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ color: C.ink, fontSize: 16, fontFamily: "system-ui", opacity: done ? 1 : 0.85 }}>{label}</span>
-                {launch && <span style={{ display: "block", color: C.muted, fontSize: 12, fontFamily: "system-ui", marginTop: 1 }}>Abrir app de ejercicio</span>}
+                {launch && <span style={{ display: "block", color: C.muted, fontSize: 12, fontFamily: "system-ui", marginTop: 1 }}>{launchLabel}</span>}
               </span>
               <span
                 className={launch ? "mr-tap" : undefined}
