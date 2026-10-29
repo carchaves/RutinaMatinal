@@ -44,7 +44,14 @@ const isOfficeDay = (d) => {
   const o = OFFICE_OVERRIDES[isoDay(d)];
   return o !== undefined ? o : OFFICE_DOW.has(d.getDay());
 };
-const morningSlot = (d) => (isOfficeDay(d) ? BANO_AM : EST_AM);
+// Estiramiento SOLO lunes(1), miércoles(3) y sábado(6). El resto de los días
+// (que no sean de oficina) no tienen estiramiento en la mañana.
+const STRETCH_DOW = new Set([1, 3, 6]);
+const morningSlot = (d) => {
+  if (isOfficeDay(d)) return BANO_AM;
+  if (STRETCH_DOW.has(d.getDay())) return EST_AM;
+  return null;
+};
 
 const habitsForDate = (d) => [
   { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
@@ -53,7 +60,7 @@ const habitsForDate = (d) => [
   { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
   { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
   { key: "limpiar_escritorio", label: "Limpiar Escritorio", Icon: SprayCan, color: "#C9A227" },
-];
+].filter(Boolean);
 
 const STORAGE_KEY = "morning_routine_data_v1";
 
