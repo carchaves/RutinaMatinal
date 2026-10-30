@@ -7,6 +7,29 @@ import { AppLauncher } from "@capacitor/app-launcher";
 
 // Abrir otra app por package: ejercicio (com.rutina.ejercicio) o Aseo Speedrun
 // (com.ritualducha.app). Requiere declararlos en <queries> del AndroidManifest.
+// Comida: abrir cámara y compartir la foto al grupo "Comidas" de Telegram.
+const captureMeal = (label) => {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.capture = "environment";
+  input.style.display = "none";
+  input.onchange = async () => {
+    const file = input.files && input.files[0];
+    if (input.parentNode) input.parentNode.removeChild(input);
+    if (!file) return;
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text: label });
+        return;
+      }
+    } catch (e) { /* cancelado o no soportado */ }
+    try { await AppLauncher.openUrl({ url: "tg://" }); } catch (e) { /* sin Telegram */ }
+  };
+  document.body.appendChild(input);
+  input.click();
+};
+
 const openApp = async (pkg) => {
   try { await AppLauncher.openUrl({ url: pkg }); } catch (e) { /* no instalada */ }
 };
@@ -55,7 +78,7 @@ const morningSlot = (d) => {
 
 const habitsForDate = (d) => [
   { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
-  { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A" },
+  { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A", meal: true, mealLabel: "Sacar foto y registrar" },
   morningSlot(d),
   { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
   { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
@@ -269,15 +292,15 @@ export default function App() {
 
       {/* hábitos */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, position: "relative", zIndex: 1 }}>
-        {selHabits.map(({ key, label, Icon, color, launch, launchLabel }) => {
+        {selHabits.map(({ key, label, Icon, color, launch, launchLabel, meal, mealLabel }) => {
           const done = !!(data[selected] && data[selected][key]);
-          const act = () => (launch ? openApp(launch) : toggle(key));
+          const act = () => (meal ? captureMeal(label) : launch ? openApp(launch) : toggle(key));
           return (
             <div
               key={key}
               className="mr-tap mr-row"
-              role={launch ? "button" : "checkbox"}
-              aria-checked={launch ? undefined : done}
+              role={launch || meal ? "button" : "checkbox"}
+              aria-checked={launch || meal ? undefined : done}
               tabIndex={0}
               onClick={act}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); } }}
@@ -293,15 +316,16 @@ export default function App() {
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ color: C.ink, fontSize: 16, fontFamily: "system-ui", opacity: done ? 1 : 0.85 }}>{label}</span>
                 {launch && <span style={{ display: "block", color: C.muted, fontSize: 12, fontFamily: "system-ui", marginTop: 1 }}>{launchLabel}</span>}
+                {meal && <span style={{ display: "block", color: C.muted, fontSize: 12, fontFamily: "system-ui", marginTop: 1 }}>{mealLabel}</span>}
               </span>
               <span
-                className={launch ? "mr-tap" : undefined}
-                role={launch ? "checkbox" : undefined}
-                aria-checked={launch ? done : undefined}
-                tabIndex={launch ? 0 : undefined}
-                aria-label={launch ? `Marcar ${label} como hecho` : undefined}
-                onClick={launch ? (e) => { e.stopPropagation(); toggle(key); } : undefined}
-                onKeyDown={launch ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggle(key); } } : undefined}
+                className={launch || meal ? "mr-tap" : undefined}
+                role={launch || meal ? "checkbox" : undefined}
+                aria-checked={launch || meal ? done : undefined}
+                tabIndex={launch || meal ? 0 : undefined}
+                aria-label={launch || meal ? `Marcar ${label} como hecho` : undefined}
+                onClick={launch || meal ? (e) => { e.stopPropagation(); toggle(key); } : undefined}
+                onKeyDown={launch || meal ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); toggle(key); } } : undefined}
                 style={{
                   width: 24, height: 24, borderRadius: 999,
                   border: `2px solid ${done ? color : C.border}`,
