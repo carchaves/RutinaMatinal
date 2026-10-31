@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
   GlassWater, StretchHorizontal, Dumbbell, Croissant, Wind, BedDouble, SprayCan,
-  ShowerHead, ChevronLeft, ChevronRight, Flame, RotateCcw,
+  ShowerHead, ChevronLeft, ChevronRight, Flame, RotateCcw, Home, ShoppingCart,
 } from "lucide-react";
 import { AppLauncher } from "@capacitor/app-launcher";
 
@@ -83,6 +83,13 @@ const habitsForDate = (d) => [
   { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
   { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
   { key: "limpiar_escritorio", label: "Limpiar Escritorio", Icon: SprayCan, color: "#C9A227" },
+  // Solo los sábados (6): limpieza general y compras, al final de la rutina.
+  ...(d.getDay() === 6
+    ? [
+        { key: "limpiar_casa", label: "Limpiar casa", Icon: Home, color: "#8FB98F" },
+        { key: "hacer_compras", label: "Hacer compras", Icon: ShoppingCart, color: "#D98C4A" },
+      ]
+    : []),
 ].filter(Boolean);
 
 const STORAGE_KEY = "morning_routine_data_v1";
