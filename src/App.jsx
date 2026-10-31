@@ -88,7 +88,7 @@ const habitsForDate = (d) => [
   ...(d.getDay() === 6
     ? [
         { key: "limpiar_casa", label: "Limpiar casa", Icon: Home, color: "#8FB98F", launch: "com.raflos.rutinasdelimpieza", launchLabel: "Abrir Rutinas de limpieza" },
-        { key: "hacer_compras", label: "Hacer compras", Icon: ShoppingCart, color: "#D98C4A" },
+        { key: "hacer_compras", label: "Hacer compras", Icon: ShoppingCart, color: "#D98C4A", launch: "cocina://compra", launchLabel: "Abrir lista de compras" },
       ]
     : []),
 ].filter(Boolean);
