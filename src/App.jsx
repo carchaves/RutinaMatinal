@@ -81,7 +81,8 @@ const habitsForDate = (d) => [
   { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A", meal: true, mealLabel: "Sacar foto y registrar" },
   morningSlot(d),
   { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
-  { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
+  // Ventilar todos los días salvo sábado.
+  d.getDay() === 6 ? null : { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
   // Limpiar Escritorio todos los días salvo sábado (ese día va Limpiar casa).
   d.getDay() === 6 ? null : { key: "limpiar_escritorio", label: "Limpiar Escritorio", Icon: SprayCan, color: "#C9A227" },
   // Solo los sábados (6): limpieza general y compras, al final de la rutina.
