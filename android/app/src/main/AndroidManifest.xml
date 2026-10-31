@@ -38,5 +38,6 @@
     <queries>
         <package android:name="com.rutina.ejercicio" />
         <package android:name="com.ritualducha.app" />
+        <package android:name="com.raflos.rutinasdelimpieza" />
     </queries>
 </manifest>

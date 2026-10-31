@@ -86,7 +86,7 @@ const habitsForDate = (d) => [
   // Solo los sábados (6): limpieza general y compras, al final de la rutina.
   ...(d.getDay() === 6
     ? [
-        { key: "limpiar_casa", label: "Limpiar casa", Icon: Home, color: "#8FB98F" },
+        { key: "limpiar_casa", label: "Limpiar casa", Icon: Home, color: "#8FB98F", launch: "com.raflos.rutinasdelimpieza", launchLabel: "Abrir Rutinas de limpieza" },
         { key: "hacer_compras", label: "Hacer compras", Icon: ShoppingCart, color: "#D98C4A" },
       ]
     : []),
