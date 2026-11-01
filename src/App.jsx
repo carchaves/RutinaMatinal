@@ -4,10 +4,23 @@ import {
   ShowerHead, ChevronLeft, ChevronRight, Flame, RotateCcw, Home, ShoppingCart,
 } from "lucide-react";
 import { AppLauncher } from "@capacitor/app-launcher";
+import { Share } from "@capacitor/share";
+import { Filesystem, Directory } from "@capacitor/filesystem";
 
 // Abrir otra app por package: ejercicio (com.rutina.ejercicio) o Aseo Speedrun
 // (com.ritualducha.app). Requiere declararlos en <queries> del AndroidManifest.
 // Comida: abrir cámara y compartir la foto al grupo "Comidas" de Telegram.
+// Usa el Share nativo (@capacitor/share) con un archivo guardado en caché via
+// @capacitor/filesystem → ACTION_SEND real de Android, adjunta la foto de verdad
+// y deja elegir el chat. navigator.share en el WebView soltaba el archivo.
+const blobToBase64 = (blob) =>
+  new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onloadend = () => resolve(String(r.result).split(",")[1] || "");
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+
 const captureMeal = (label) => {
   const input = document.createElement("input");
   input.type = "file";
@@ -19,12 +32,26 @@ const captureMeal = (label) => {
     if (input.parentNode) input.parentNode.removeChild(input);
     if (!file) return;
     try {
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: label });
-        return;
-      }
-    } catch (e) { /* cancelado o no soportado */ }
-    try { await AppLauncher.openUrl({ url: "tg://" }); } catch (e) { /* sin Telegram */ }
+      const ext = (file.type && file.type.split("/")[1]) || "jpg";
+      const name = `comida-${Date.now()}.${ext === "jpeg" ? "jpg" : ext}`;
+      const base64 = await blobToBase64(file);
+      const written = await Filesystem.writeFile({
+        path: name,
+        data: base64,
+        directory: Directory.Cache,
+      });
+      await Share.share({ text: label, files: [written.uri] });
+      return;
+    } catch (e) {
+      // cancelado por el usuario, o Share no disponible → fallback
+      try {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({ files: [file], text: label });
+          return;
+        }
+      } catch (e2) { /* nada */ }
+      try { await AppLauncher.openUrl({ url: "tg://" }); } catch (e2) { /* sin Telegram */ }
+    }
   };
   document.body.appendChild(input);
   input.click();
