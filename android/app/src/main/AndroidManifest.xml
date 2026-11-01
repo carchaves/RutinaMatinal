@@ -39,6 +39,9 @@
         <package android:name="com.rutina.ejercicio" />
         <package android:name="com.ritualducha.app" />
         <package android:name="com.raflos.rutinasdelimpieza" />
+        <package android:name="org.telegram.messenger" />
+        <package android:name="org.telegram.messenger.web" />
+        <package android:name="org.thunderdog.challegram" />
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="cocina" />

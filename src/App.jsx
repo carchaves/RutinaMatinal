@@ -6,6 +6,10 @@ import {
 import { AppLauncher } from "@capacitor/app-launcher";
 import { Share } from "@capacitor/share";
 import { Filesystem, Directory } from "@capacitor/filesystem";
+import { registerPlugin } from "@capacitor/core";
+
+// Plugin nativo propio: comparte directo a Telegram salteando el menu de apps.
+const ShareTelegram = registerPlugin("ShareTelegram");
 
 // Abrir otra app por package: ejercicio (com.rutina.ejercicio) o Aseo Speedrun
 // (com.ritualducha.app). Requiere declararlos en <queries> del AndroidManifest.
@@ -40,6 +44,12 @@ const captureMeal = (label) => {
         data: base64,
         directory: Directory.Cache,
       });
+      // 1) Intentar directo a Telegram (saltea el menu "elegir app").
+      try {
+        await ShareTelegram.share({ text: label, path: written.uri });
+        return;
+      } catch (eTg) { /* Telegram no instalado / no disponible → Share normal */ }
+      // 2) Fallback: share-sheet de Android con la foto adjunta.
       await Share.share({ text: label, files: [written.uri] });
       return;
     } catch (e) {
