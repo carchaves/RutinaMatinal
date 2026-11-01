@@ -4,68 +4,17 @@ import {
   ShowerHead, ChevronLeft, ChevronRight, Flame, RotateCcw, Home, ShoppingCart,
 } from "lucide-react";
 import { AppLauncher } from "@capacitor/app-launcher";
-import { Share } from "@capacitor/share";
-import { Filesystem, Directory } from "@capacitor/filesystem";
-import { registerPlugin } from "@capacitor/core";
 
-// Plugin nativo propio: comparte directo a Telegram salteando el menu de apps.
-const ShareTelegram = registerPlugin("ShareTelegram");
-
-// Abrir otra app por package: ejercicio (com.rutina.ejercicio) o Aseo Speedrun
-// (com.ritualducha.app). Requiere declararlos en <queries> del AndroidManifest.
-// Comida: abrir cámara y compartir la foto al grupo "Comidas" de Telegram.
-// Usa el Share nativo (@capacitor/share) con un archivo guardado en caché via
-// @capacitor/filesystem → ACTION_SEND real de Android, adjunta la foto de verdad
-// y deja elegir el chat. navigator.share en el WebView soltaba el archivo.
-const blobToBase64 = (blob) =>
-  new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onloadend = () => resolve(String(r.result).split(",")[1] || "");
-    r.onerror = reject;
-    r.readAsDataURL(blob);
-  });
-
-const captureMeal = (label) => {
-  const input = document.createElement("input");
-  input.type = "file";
-  input.accept = "image/*";
-  input.capture = "environment";
-  input.style.display = "none";
-  input.onchange = async () => {
-    const file = input.files && input.files[0];
-    if (input.parentNode) input.parentNode.removeChild(input);
-    if (!file) return;
-    try {
-      const ext = (file.type && file.type.split("/")[1]) || "jpg";
-      const name = `comida-${Date.now()}.${ext === "jpeg" ? "jpg" : ext}`;
-      const base64 = await blobToBase64(file);
-      const written = await Filesystem.writeFile({
-        path: name,
-        data: base64,
-        directory: Directory.Cache,
-      });
-      // 1) Copiar la foto al portapapeles y abrir DIRECTO el chat de Hermes.
-      //    El usuario solo pega y manda (el bot es deep-linkeable por usuario).
-      try {
-        await ShareTelegram.copyAndOpen({ path: written.uri, domain: "HermesHeraldoBot" });
-        return;
-      } catch (eTg) { /* Telegram no disponible → Share normal */ }
-      // 2) Fallback: share-sheet de Android con la foto adjunta.
-      await Share.share({ text: label, files: [written.uri] });
-      return;
-    } catch (e) {
-      // cancelado por el usuario, o Share no disponible → fallback
-      try {
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], text: label });
-          return;
-        }
-      } catch (e2) { /* nada */ }
-      try { await AppLauncher.openUrl({ url: "tg://" }); } catch (e2) { /* sin Telegram */ }
-    }
-  };
-  document.body.appendChild(input);
-  input.click();
+// Comida: simplemente abrir Telegram en el chat de Hermes (@HermesHeraldoBot).
+// Charly saca y manda la foto a mano desde ahí. Sin cámara automática, sin token.
+// Deep-link puro (tg://resolve) → funciona por OTA, sin plugin nativo.
+const captureMeal = async () => {
+  try {
+    await AppLauncher.openUrl({ url: "tg://resolve?domain=HermesHeraldoBot" });
+    return;
+  } catch (e) { /* fallback abajo */ }
+  try { await AppLauncher.openUrl({ url: "https://t.me/HermesHeraldoBot" }); }
+  catch (e2) { /* sin Telegram instalado */ }
 };
 
 const openApp = async (pkg) => {
@@ -116,7 +65,7 @@ const morningSlot = (d) => {
 
 const habitsForDate = (d) => [
   { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
-  { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A", meal: true, mealLabel: "Sacar foto y registrar" },
+  { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A", meal: true, mealLabel: "Abrir chat de Hermes" },
   morningSlot(d),
   { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
   // Ventilar todos los días salvo sábado.
@@ -341,7 +290,7 @@ export default function App() {
       <div style={{ display: "flex", flexDirection: "column", gap: 8, position: "relative", zIndex: 1 }}>
         {selHabits.map(({ key, label, Icon, color, launch, launchLabel, meal, mealLabel }) => {
           const done = !!(data[selected] && data[selected][key]);
-          const act = () => (meal ? captureMeal(label) : launch ? openApp(launch) : toggle(key));
+          const act = () => (meal ? captureMeal() : launch ? openApp(launch) : toggle(key));
           return (
             <div
               key={key}
