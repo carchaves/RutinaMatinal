@@ -44,11 +44,12 @@ const captureMeal = (label) => {
         data: base64,
         directory: Directory.Cache,
       });
-      // 1) Intentar directo a Telegram (saltea el menu "elegir app").
+      // 1) Copiar la foto al portapapeles y abrir DIRECTO el chat de Hermes.
+      //    El usuario solo pega y manda (el bot es deep-linkeable por usuario).
       try {
-        await ShareTelegram.share({ text: label, path: written.uri });
+        await ShareTelegram.copyAndOpen({ path: written.uri, domain: "HermesHeraldoBot" });
         return;
-      } catch (eTg) { /* Telegram no instalado / no disponible → Share normal */ }
+      } catch (eTg) { /* Telegram no disponible → Share normal */ }
       // 2) Fallback: share-sheet de Android con la foto adjunta.
       await Share.share({ text: label, files: [written.uri] });
       return;
