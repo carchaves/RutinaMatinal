@@ -54,12 +54,11 @@ const isOfficeDay = (d) => {
   const o = OFFICE_OVERRIDES[isoDay(d)];
   return o !== undefined ? o : OFFICE_DOW.has(d.getDay());
 };
-// Estiramiento SOLO lunes(1), miércoles(3) y sábado(6). El resto de los días
-// (que no sean de oficina) no tienen estiramiento en la mañana.
-const STRETCH_DOW = new Set([1, 3, 6]);
+// El estiramiento se movió a RutinaMediodia (justo después de Trabajo) el
+// 2026-11-04. A la mañana ya no hay estiramiento: el único slot especial es el
+// Baño los días de oficina.
 const morningSlot = (d) => {
   if (isOfficeDay(d)) return BANO_AM;
-  if (STRETCH_DOW.has(d.getDay())) return EST_AM;
   return null;
 };
 
