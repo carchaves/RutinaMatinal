@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   GlassWater, StretchHorizontal, Dumbbell, Croissant, Wind, BedDouble, SprayCan,
   ShowerHead, ChevronLeft, ChevronRight, Flame, RotateCcw, Home, ShoppingCart,
+  Languages, Blinds,
 } from "lucide-react";
 import { AppLauncher } from "@capacitor/app-launcher";
 
@@ -64,13 +65,15 @@ const morningSlot = (d) => {
 
 const habitsForDate = (d) => [
   { key: "tender_cama", label: "Tender cama", Icon: BedDouble, color: "#A78BE0" },
-  { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A", meal: true, mealLabel: "Abrir chat de Hermes" },
-  morningSlot(d),
-  { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
+  // Abrir persianas: nuevo, va justo después de tender la cama (2026-11-04).
+  { key: "persianas", label: "Abrir persianas", Icon: Blinds, color: "#E0B84F" },
   // Ventilar todos los días salvo sábado.
   d.getDay() === 6 ? null : { key: "ventilar", label: "Ventilar", Icon: Wind, color: "#7FB3E0" },
-  // Limpiar Escritorio todos los días salvo sábado (ese día va Limpiar casa).
-  d.getDay() === 6 ? null : { key: "limpiar_escritorio", label: "Limpiar Escritorio", Icon: SprayCan, color: "#C9A227" },
+  { key: "desayuno", label: "Desayuno", Icon: Croissant, color: "#D98C4A", meal: true, mealLabel: "Abrir chat de Hermes" },
+  morningSlot(d),
+  // Duolingo: movido de la rutina del mediodía a la mañana (2026-11-04).
+  { key: "duolingo", label: "Duolingo", Icon: Languages, color: "#58CC02", launch: "com.duolingo", launchLabel: "Abrir Duolingo" },
+  { key: "agua", label: "Cargar Agua", Icon: GlassWater, color: "#4FA3D1" },
   // Solo los sábados (6): limpieza general y compras, al final de la rutina.
   ...(d.getDay() === 6
     ? [
