@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import {
   GlassWater, StretchHorizontal, Dumbbell, Croissant, Wind, BedDouble, SprayCan,
   ShowerHead, ChevronLeft, ChevronRight, Flame, RotateCcw, Home, ShoppingCart,
-  Languages, Blinds,
+  Languages, Blinds, GripVertical,
 } from "lucide-react";
 import { AppLauncher } from "@capacitor/app-launcher";
 
@@ -170,6 +170,9 @@ function Sun({ size, fraction, id }) {
 export default function App() {
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
+  // Reordenamiento por arrastre (orden por fecha, se reinicia solo cada día).
+  const [liveOrder, setLiveOrder] = useState(null);
+  const dragKeyRef = React.useRef(null);
   const today = useMemo(() => new Date(), []);
   const [selected, setSelected] = useState(toKey(today));
   const [weekBase, setWeekBase] = useState(startOfWeek(today));
@@ -236,6 +239,61 @@ export default function App() {
   const selTotal = selHabits.length;
   const isToday = selected === toKey(today);
 
+  // Orden del día: si hay un orden guardado para esta fecha lo aplico; si no,
+  // queda el orden original (cada día nuevo arranca ordenado de fábrica).
+  const orderedHabits = useMemo(() => {
+    const ord = (data[selected] && data[selected].__order) || null;
+    if (!ord) return selHabits;
+    const map = new Map(selHabits.map((h) => [h.key, h]));
+    const out = [];
+    ord.forEach((k) => { if (map.has(k)) { out.push(map.get(k)); map.delete(k); } });
+    selHabits.forEach((h) => { if (map.has(h.key)) out.push(h); });
+    return out;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, selected, selTotal]);
+
+  const rows = liveOrder
+    ? liveOrder.map((k) => selHabits.find((h) => h.key === k)).filter(Boolean)
+    : orderedHabits;
+
+  const onHandleDown = (e, key) => {
+    e.stopPropagation();
+    dragKeyRef.current = key;
+    setLiveOrder(orderedHabits.map((h) => h.key));
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+  };
+  const onHandleMove = (e) => {
+    if (!dragKeyRef.current) return;
+    e.preventDefault();
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const row = el && el.closest ? el.closest("[data-habitkey]") : null;
+    if (!row) return;
+    const overKey = row.getAttribute("data-habitkey");
+    if (!overKey || overKey === dragKeyRef.current) return;
+    setLiveOrder((cur) => {
+      if (!cur) return cur;
+      const arr = [...cur];
+      const from = arr.indexOf(dragKeyRef.current);
+      const to = arr.indexOf(overKey);
+      if (from < 0 || to < 0) return cur;
+      arr.splice(from, 1);
+      arr.splice(to, 0, dragKeyRef.current);
+      return arr;
+    });
+  };
+  const onHandleUp = () => {
+    if (!dragKeyRef.current) return;
+    const keys = liveOrder;
+    dragKeyRef.current = null;
+    setLiveOrder(null);
+    if (keys) {
+      const cur = data[selected] || {};
+      const next = { ...data, [selected]: { ...cur, __order: keys } };
+      setData(next);
+      save(next);
+    }
+  };
+
   const weekLabel = `${weekDays[0].toLocaleDateString("es-ES", { day: "numeric" })}–${weekDays[6].toLocaleDateString("es-ES", { day: "numeric", month: "short" })}`;
 
   const reset = async () => {
@@ -290,12 +348,14 @@ export default function App() {
 
       {/* hábitos */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, position: "relative", zIndex: 1 }}>
-        {selHabits.map(({ key, label, Icon, color, launch, launchLabel, meal, mealLabel }) => {
+        {rows.map(({ key, label, Icon, color, launch, launchLabel, meal, mealLabel }) => {
           const done = !!(data[selected] && data[selected][key]);
+          const dragging = liveOrder && dragKeyRef.current === key;
           const act = () => (meal ? captureMeal() : launch ? openApp(launch) : toggle(key));
           return (
             <div
               key={key}
+              data-habitkey={key}
               className="mr-tap mr-row"
               role={launch || meal ? "button" : "checkbox"}
               aria-checked={launch || meal ? undefined : done}
@@ -305,9 +365,23 @@ export default function App() {
               style={{
                 display: "flex", alignItems: "center", gap: 12,
                 padding: "13px 14px", borderRadius: 14,
-                background: C.panel, border: `1px solid ${done ? color : C.border}`,
+                background: dragging ? C.panelSoft : C.panel,
+                border: `1px solid ${dragging ? C.amber : (done ? color : C.border)}`,
+                boxShadow: dragging ? "0 6px 16px rgba(0,0,0,.18)" : "none",
               }}
             >
+              <span
+                className="mr-tap"
+                aria-label={`Reordenar ${label}`}
+                onPointerDown={(e) => onHandleDown(e, key)}
+                onPointerMove={onHandleMove}
+                onPointerUp={onHandleUp}
+                onPointerCancel={onHandleUp}
+                onClick={(e) => e.stopPropagation()}
+                style={{ display: "grid", placeItems: "center", width: 22, height: 34, marginLeft: -4, touchAction: "none", flexShrink: 0 }}
+              >
+                <GripVertical size={18} color={C.muted} />
+              </span>
               <span style={{ display: "grid", placeItems: "center", width: 34, height: 34, borderRadius: 10, background: done ? color : C.panelSoft, transition: "background .2s" }}>
                 <Icon size={18} color={done ? "#FFFFFF" : color} strokeWidth={2} />
               </span>
